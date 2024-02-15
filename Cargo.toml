@@ -42,7 +42,7 @@ include = [
 ]
 
 [features]
-default = ["linux-static-hidraw", "illumos-static-libusb"]
+default = ["linux-static-hidraw", "illumos-static-libusb", "windows-native"]
 linux-static-libusb = []
 linux-static-hidraw = []
 linux-shared-libusb = []

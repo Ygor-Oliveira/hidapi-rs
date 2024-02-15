@@ -46,7 +46,7 @@ use windows_sys::Win32::Storage::FileSystem::{
     OPEN_EXISTING,
 };
 use windows_sys::Win32::System::Threading::ResetEvent;
-use windows_sys::Win32::System::IO::{CancelIo, DeviceIoControl};
+use windows_sys::Win32::System::IO::{CancelIo, CancelIoEx, DeviceIoControl};
 
 const STRING_BUF_LEN: usize = 128;
 
@@ -335,7 +335,16 @@ impl HidDeviceBackendWindows for HidDevice {
 impl Drop for HidDevice {
     fn drop(&mut self) {
         unsafe {
-            CancelIo(self.device_handle.as_raw());
+            for state in [
+                &mut self.read_state,
+                &mut self.write_state,
+                &mut self.feature_state,
+            ] {
+                let mut state = state.borrow_mut();
+                if CancelIoEx(self.device_handle.as_raw(), state.overlapped.as_raw()) > 0 {
+                    _ = state.overlapped.get_result(&self.device_handle, None);
+                }
+            }
         }
     }
 }
