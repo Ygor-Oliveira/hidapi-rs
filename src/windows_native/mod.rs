@@ -46,7 +46,7 @@ use windows_sys::Win32::Storage::FileSystem::{
     OPEN_EXISTING,
 };
 use windows_sys::Win32::System::Threading::ResetEvent;
-use windows_sys::Win32::System::IO::{CancelIo, CancelIoEx, DeviceIoControl};
+use windows_sys::Win32::System::IO::{CancelIoEx, DeviceIoControl};
 
 const STRING_BUF_LEN: usize = 128;
 
@@ -179,7 +179,7 @@ impl HidDeviceBackendBase for HidDevice {
             if res != TRUE {
                 let err = Win32Error::last();
                 if err != Win32Error::IoPending {
-                    unsafe { CancelIo(self.device_handle.as_raw()) };
+                    unsafe { CancelIoEx(self.device_handle.as_raw(), state.overlapped.as_raw()) };
                     self.read_pending.set(false);
                     return Err(err.into());
                 }
